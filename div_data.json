@@ -1,0 +1,180 @@
+{
+    "Claim": [
+        "applType",
+        "applType_text",
+        "name",
+        "applDate",
+        "tmhbType",
+        "tmhbType_text",
+        "weight",
+        "height",
+        "pregnant",
+        "diagDate",
+        "icd10cmCode",
+        "icdcm_text",
+        "diagCurrentStatus",
+        "opDate",
+        "opCode",
+        "opCode_text",
+        "applQty",
+        "applQtyUnit",
+        "applQtyUnit_text",
+        "orderType",
+        "orderType_text",
+        "continuation",
+        "continuation_text",
+        "lot",
+        "lot_text",
+        "applyReason"
+    ],
+    "ClaimResponse": [
+        "approveDate",
+        "approveNum",
+        "approveComment_text"
+    ],
+    "Coverage": [
+        "name"
+    ],
+    "DiagnosticImgReport": [
+        "name",
+        "imgItem",
+        "imgItem_text",
+        "imgDate",
+        "imgResult"
+    ],
+    "DiagnosticReport": [
+        "name",
+        "reportType",
+        "reportType_text",
+        "reportResultString"
+    ],
+    "DocumentReferenceCareplan": [
+        "name",
+        "carePlanDocTitle",
+        "carePlanDocPdf"
+    ],
+    "DocumentReferenceGene": [
+        "name",
+        "genPdf",
+        "genPdfTitle"
+    ],
+    "DocumentReferenceMedical": [
+        "name",
+        "medrec",
+        "medrecTitle"
+    ],
+    "DocumentReferenceTest": [
+        "name",
+        "inspectPdf",
+        "inspectPdfTitle"
+    ],
+    "Encounter": [
+        "funcType",
+        "funcType_text"
+    ],
+    "MedicationRequest": [
+        "eReason",
+        "eReason_text",
+        "drugType",
+        "drugType_text",
+        "drugCode",
+        "drugCode_text",
+        "drugFre",
+        "dose",
+        "doseUnit",
+        "doseUnit_text",
+        "sDate",
+        "eDate",
+        "drugRoute",
+        "drugRoute_text"
+    ],
+    "MedicationRequestApply": [
+        "cancerDrugType",
+        "cancerDrugType_text",
+        "name",
+        "useSdate",
+        "useEdate",
+        "applDrugFre",
+        "applDrugFre_mergText",
+        "applDosage",
+        "applDosageUnit",
+        "applDrugCycle",
+        "drugRoute",
+        "drugRoute_text"
+    ],
+    "ObservationCancer": [
+        "assessItem",
+        "assessItem_text",
+        "assessDate",
+        "assessScore",
+        "assessScore_text"
+    ],
+    "ObservationDiagnostic": [
+        "genDate",
+        "genTestCode",
+        "genTestCode_text",
+        "mutationType",
+        "mutationType_text",
+        "genOrg",
+        "genResult",
+        "genInterpretation",
+        "genInterpretation_text",
+        "genMethod"
+    ],
+    "ObservationLab": [
+        "inspect",
+        "caseTime",
+        "inspectResult",
+        "inspectResultTxt",
+        "inspectResultTxt_text",
+        "consultValueLower",
+        "consultValueMax"
+    ],
+    "ObservationPatNyha": [
+        "patAst",
+        "patAst_text",
+        "patAstDate",
+        "patAstPerformer",
+        "patAstResult"
+    ],
+    "ObservationTx": [
+        "txAst",
+        "txAst_text",
+        "txAstDate",
+        "txAstResult"
+    ],
+    "Organization": [
+        "hospId"
+    ],
+    "OrganizationGene": [
+        "genOrg"
+    ],
+    "Patient": [
+        "idCard",
+        "patId",
+        "name",
+        "gender",
+        "birthday"
+    ],
+    "Practitioner": [
+        "applPrsnId"
+    ],
+    "Procedure": [
+        "rtStatus",
+        "rt",
+        "rt_text",
+        "name",
+        "realInspectTime"
+    ],
+    "Specimen": [
+        "specimenType",
+        "specimenType_text",
+        "genDate"
+    ],
+    "Substance": [
+        "rt",
+        "rt_text",
+        "rtDose",
+        "rtUnit"
+    ]
+}

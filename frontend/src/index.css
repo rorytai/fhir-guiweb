@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 可選：小幅度微調全域基底風格 */
+html, body, #root {
+  height: 100%;
+}
+
