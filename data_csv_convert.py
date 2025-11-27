@@ -8,10 +8,18 @@ from datetime import datetime
 from pathlib import Path
 from collections import defaultdict
 
+# 取得當前日期時間物件
+now = datetime.now()
+# 使用 strftime() 格式化為 YYYYMMDDHHMM 字串
+formatted_time = now.strftime("%Y%m%d%H%M")
+
+
 
 # === 處理 CLI 參數 ===
 if len(sys.argv) > 1:
     csv_name = sys.argv[1]
+    base_csv = os.path.basename(csv_name)
+    csvname_noext = os.path.splitext(base_csv)[0]
     print("📥 輸入 CSV：", csv_name)
 else:
     print("❌ 未提供 CSV 檔案")
@@ -177,6 +185,8 @@ def transform_row(row):
         if ("weight" in key or "height" in key) and is_float_string(result[key]):
             result[key] = round(float(result[key]), 2)
         if ("Lower" in key or "Max" in key) and (result[key].isdigit() or is_float_string(result[key])):
+            result[key] = float(result[key])
+        if "inspectResult" == key and is_float_string(result[key]):
             result[key] = float(result[key])
 
         if "applQty" == key and str(result[key]).isdigit():
@@ -534,7 +544,7 @@ def transform_row(row):
 
     # === 處理Resource div自動填入部份 ===
     append_div_dict = {}
-    div_paths = glob.glob(os.path.join(os.getcwd(), "div_template", "*.html"))
+    div_paths = glob.glob(os.path.join(os.getcwd(), "template", "div", "*.html"))
     #filenames = [os.path.basename(p) for p in div_paths]
     #fs_no_ext = [os.path.splitext(name)[0] for name in filenames]
 
@@ -562,7 +572,7 @@ def transform_row(row):
 
 # === 讀取與轉換 CSV ===
 div_dict = {}
-with open('div_data.json', 'r') as file:
+with open(os.path.join(os.getcwd(), "template", "div_data.json"), 'r') as file:
     div_dict = json.load(file)
 
 data = []
@@ -574,7 +584,8 @@ with open(csv_name, 'r', encoding='utf-8-sig') as csvfile:
         data.append(transform_row(row))
 
 # === 寫出 JSON ===
-with open('output.json', 'w', encoding='utf-8') as jsonfile:
+output_fname = "output_" + str(csvname_noext) + "_" + str(formatted_time) + ".json" 
+with open(os.path.join(os.getcwd(), "convData", output_fname), 'w', encoding='utf-8') as jsonfile:
     json.dump(data, jsonfile, indent=4, ensure_ascii=False)
 
-print(f"✅ 轉換完成，輸出筆數：{len(data)}，寫入 output.json")
+print(f"✅ 轉換完成，輸出筆數：{len(data)}，寫入 ", output_fname)

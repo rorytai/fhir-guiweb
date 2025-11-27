@@ -1053,7 +1053,7 @@ module.exports.globalResource = {
             },
             system: "http://www.moi.gov.tw",
             //value: //項次4{applPrsnId}/項次25{imgInterpreter}/項次32{assessPerformer}/項次39{reportPerformer}/項次51{inspectPerformer}/項次55{patAstPerformer}
-        }],
+        }]
     },
     //放射治療
     Procedure: {

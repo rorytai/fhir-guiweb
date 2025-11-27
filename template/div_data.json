@@ -72,6 +72,12 @@
         "funcType",
         "funcType_text"
     ],
+    "ImagingStudy": [
+        "name"
+    ],
+    "Media": [
+        "name"
+    ],
     "MedicationRequest": [
         "eReason",
         "eReason_text",
