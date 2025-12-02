@@ -1681,50 +1681,11 @@ module.exports.fields = [
         source: "txAstDate",
         target: "ObservationTx.effectiveDateTime",
     },
-    //#89	給付適應症條件 (仍需修改成自動擴展模式)
-    //{
-    //    source: "applyReason0_code",
-    //    target: "Claim.item[0].programCode[0].coding[0].code",
-    //},
-    //{
-    //    source: "applyReason0_system",
-    //    target: "Claim.item[0].programCode[0].coding[0].system",
-    //},
+    //#89	給付適應症條件 (修改成自動擴展模式, 先置入mergDispaly再後處理)
     {
-        source: "applyReason0_text",
+        source: "applyReason_mergDisplay",
         target: "Claim.item[0].programCode[0].text",
     },
-    //{
-    //    source: "applyReason_mergDisplay",
-    //    target: "Claim.item[0]",
-    //    beforeConvert: (data) => {
-    //		if (!data) return {};
-
-    //		const list_item = [];
-    //        //先用 ";" 分割成 tuple 字串陣列
-    //        const tupleStrings = data.split(";").map(s => s.trim()).filter(Boolean);
-
-    //        //取得 tuple 的個數
-    //        //const tupleCount = tupleStrings.length;
-
-    //        const items = tupleStrings.map((t, index) => {
-    //            // 去除括號並以逗號分隔
-    //            const [code, text, system] = t.replace(/[()]/g, "").split(",").map(v => v.trim());
-    //            list_item.push({
-    //                //sequence: index + 1,
-    //                //programCode: [{
-    //                    coding: [{
-    //                        system: system || "",
-    //                        code: code || ""
-    //                    }],
-    //                    text: text || ""
-    //                //}]
-    //            });
-    //        });
-    //        //return { item: list_item };
-    //        return { programCode: list_item };
-  	//	}
-    //},
     //#90	用藥線別
     {
         source: "lot",
@@ -1894,6 +1855,14 @@ module.exports.fields = [
         target: "Encounter.text.div",
     },
     {
+        source: "ImagingStudy_div",
+        target: "ImagingStudy.text.div",
+    },
+    {
+        source: "Media_div",
+        target: "Media.text.div",
+    },
+    {
         source: "MedicationRequest_div",
         target: "MedicationRequest.text.div",
     },
@@ -1959,6 +1928,121 @@ module.exports.beforeProcess = (data) => {
 
 // Add a global post-processor to add Organization resource
 module.exports.afterProcess = (bundle) => {
-    
+    // Claim.item 
+    // 如果 bundle 結構怪怪的就直接放過
+    if (!bundle || !Array.isArray(bundle.entry)) {
+        return bundle;
+    }
+
+    // 逐一處理每一個 Claim（通常只有一個，但這樣寫比較安全）
+    bundle.entry.forEach((entry) => {
+        if (!entry.resource || entry.resource.resourceType !== "Claim") {
+            return;
+        }
+
+        const claim = entry.resource;
+
+        // 沒有 item 就不用處理
+        if (!Array.isArray(claim.item) || claim.item.length === 0) {
+            return;
+        }
+
+        const firstItem = claim.item[0];
+
+        if (!firstItem.programCode || !firstItem.programCode.length) {
+            return;
+        }
+
+        const pc0 = firstItem.programCode[0];
+
+        if (!pc0 || typeof pc0.text !== "string") {
+            return;
+        }
+
+        const raw = pc0.text.trim();
+        if (!raw) {
+            return;
+        }
+
+        // ---- 開始拆 "(A,B,C);(A2,B2,C2)..." ----
+        // 先用 ";" 切成多個 tuple 字串
+        const tupleStrings = raw
+            .split(";")
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+        if (tupleStrings.length === 0) {
+            return;
+        }
+
+        const newItems = [];
+
+        // 預先把 productOrService 深拷貝出來，後面要給第二筆以後共用
+        const baseProductOrService = firstItem.productOrService
+            ? JSON.parse(JSON.stringify(firstItem.productOrService))
+            : undefined;
+
+        tupleStrings.forEach((t, idx) => {
+            // 去掉前後括號 "(" 和 ")"
+            const noParen = t.replace(/^\(/, "").replace(/\)$/, "");
+
+            // 切成 A,B,C；不足 3 個就補空字串
+            const parts = noParen.split(",");
+            let A = (parts[0] || "").trim(); // code
+            let B = (parts[1] || "").trim(); // text
+            let C = (parts[2] || "").trim(); // system
+
+            // 如果 A、B、C 全空，就整筆略過
+            if (!A && !B && !C) {
+                return;
+            }
+
+            // 組成 programCode 物件
+            const programCode = {};
+
+            // B 有值就填 text
+            if (B) {
+                programCode.text = B;
+            }
+
+            // A 或 C 有任一非空，才建 coding[0]
+            if (A || C) {
+                programCode.coding = [{}];
+                if (A) {
+                    programCode.coding[0].code = A;
+                }
+                if (C) {
+                    programCode.coding[0].system = C;
+                }
+            }
+
+            if (idx === 0) {
+                // 第一筆 tuple → 改寫原本的 Claim.item[0]
+                firstItem.sequence = 1;
+                firstItem.programCode = [programCode];
+                // 注意：第一筆保留原本的 productOrService（已經有）
+                newItems.push(firstItem);
+            } else {
+                // 第二筆以後 → 各自生出一個新的 Claim.item
+                const newItem = {
+                    sequence: idx + 1,          // 2, 3, ...
+                    programCode: [programCode],
+                };
+                // 依需求：把 Claim.item[0].productOrService 複製到後面每一筆
+                if (baseProductOrService) {
+                    newItem.productOrService = JSON.parse(
+                        JSON.stringify(baseProductOrService)
+                    );
+                }
+                newItems.push(newItem);
+            }
+        });
+        // 有成功拆出新的 items 才覆蓋
+        if (newItems.length > 0) {
+            claim.item = newItems;
+        }
+    });
+
     return bundle;
-}
+};
+

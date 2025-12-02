@@ -603,6 +603,11 @@ function TabConverter() {
   const [configFile, setConfigFile] = useState("");
   const [availableConfigFiles, setAvailableConfigFiles] = useState([]);
 
+  // 來源檔案預覽（JSON 樹）＋收合狀態
+  const [inputPreview, setInputPreview] = useState(null);
+  const [inputPreviewErr, setInputPreviewErr] = useState("");
+  const [showInputPreview, setShowInputPreview] = useState(false);
+
   // config js 原始文字 + 收合狀態
   const [configText, setConfigText] = useState("");
   const [configErr, setConfigErr] = useState("");
@@ -690,6 +695,23 @@ function TabConverter() {
       }
     })();
   }, [configNameNoExt]);
+
+  // 讀取來源 JSON 檔內容（convData 下 inputFile）
+  const loadInputPreview = async () => {
+    setInputPreviewErr("");
+    setInputPreview(null);
+    if (!inputFile) return;
+    try {
+      const res = await fetch(
+        `/api/read-json?dir=convData&filename=${encodeURIComponent(inputFile)}`
+      );
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setInputPreview(data);
+    } catch (e) {
+      setInputPreviewErr(String(e.message || e));
+    }
+  };
 
   const handleSaveTemplateConfig = async () => {
     setSaveMsg("");
@@ -840,6 +862,45 @@ function TabConverter() {
         </div>
       }
     >
+      {/* ★ 新增：來源 JSON 檔內容預覽（在 Config block 上方，JsonTree + 可收合） */}
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={async () => {
+            const next = !showInputPreview;
+            setShowInputPreview(next);
+            if (next && inputFile) {
+              await loadInputPreview();
+            }
+          }}
+          disabled={!inputFile}
+          className="text-sm px-3 py-2 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-60"
+        >
+          {showInputPreview ? "收合來源檔案內容" : "顯示來源檔案內容"}
+        </button>
+
+        {showInputPreview && (
+          <div className="mt-3">
+            {inputPreviewErr && (
+              <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
+                {inputPreviewErr}
+              </div>
+            )}
+            {inputPreview && (
+              <div className="mt-2">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-medium">{inputFile}</h3>
+                  <span className="text-[10px] text-gray-500">
+                    可展開/收合 · 可捲動
+                  </span>
+                </div>
+                <JsonTree data={inputPreview} />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Config js 內容 block：不用 JsonTree，直接顯示原始 js，且可收合 */}
       <div className="mb-4">
         <button
